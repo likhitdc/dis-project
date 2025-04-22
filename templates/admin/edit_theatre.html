@@ -1,0 +1,32 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Edit Theatre - ALSBookings.com{% endblock %}
+
+{% block content %}
+<section class="admin-form-section">
+    <h2>Edit Theatre</h2>
+    
+    <form action="{{ url_for('admin.edit_theatre', theatre_id=theatre.id) }}" method="post" class="admin-form">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" value="{{ theatre.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" value="{{ theatre.location }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="total_seats">Total Seats</label>
+            <input type="number" id="total_seats" name="total_seats" value="{{ theatre.total_seats }}" required>
+        </div>
+        
+        <div class="form-actions">
+            <a href="{{ url_for('admin.theatres') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Update Theatre</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

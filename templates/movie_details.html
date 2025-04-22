@@ -1,0 +1,37 @@
+
+{% extends 'base.html' %}
+
+{% block title %}{{ movie.title }} - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="movie-details">
+    <div class="movie-hero">
+        <div class="movie-poster-large">
+            <img src="{{ movie.image_url or url_for('static', filename='img/default-poster.jpg') }}" alt="{{ movie.title }}">
+        </div>
+        <div class="movie-info-large">
+            <h1>{{ movie.title }}</h1>
+            <p class="movie-meta">{{ movie.language }} | {{ movie.genres }}</p>
+            {% if movie.duration %}
+            <p class="movie-duration">{{ movie.duration }} mins</p>
+            {% endif %}
+            <div class="movie-description">
+                {{ movie.description or 'No description available.' }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="booking-section">
+        <h2>Select a Date</h2>
+        <div class="date-picker">
+            {% for date in dates %}
+            <a href="{{ url_for('main.showtimes', movie_id=movie.id, date=date) }}" class="date-option">
+                <div class="date-day">{{ date.strftime('%a') }}</div>
+                <div class="date-number">{{ date.strftime('%d') }}</div>
+                <div class="date-month">{{ date.strftime('%b') }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

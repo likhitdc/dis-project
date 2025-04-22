@@ -1,0 +1,45 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard">
+    <h2>Admin Dashboard</h2>
+    
+    <div class="admin-stats">
+        <div class="stat-card">
+            <h3>Movies</h3>
+            <p class="stat-number">{{ movies_count }}</p>
+            <a href="{{ url_for('admin.movies') }}" class="btn btn-secondary">Manage</a>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Theatres</h3>
+            <p class="stat-number">{{ theatres_count }}</p>
+            <a href="{{ url_for('admin.theatres') }}" class="btn btn-secondary">Manage</a>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Showtimes</h3>
+            <p class="stat-number">{{ showtimes_count }}</p>
+            <a href="{{ url_for('admin.showtimes') }}" class="btn btn-secondary">Manage</a>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Bookings</h3>
+            <p class="stat-number">{{ bookings_count }}</p>
+            <a href="{{ url_for('admin.bookings') }}" class="btn btn-secondary">View All</a>
+        </div>
+    </div>
+    
+    <div class="admin-actions">
+        <h3>Quick Actions</h3>
+        <div class="action-buttons">
+            <a href="{{ url_for('admin.add_movie') }}" class="btn btn-primary">Add Movie</a>
+            <a href="{{ url_for('admin.add_theatre') }}" class="btn btn-primary">Add Theatre</a>
+            <a href="{{ url_for('admin.add_showtime') }}" class="btn btn-primary">Add Showtime</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

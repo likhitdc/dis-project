@@ -1,0 +1,446 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Select Seats - ALSBookings.com{% endblock %}
+
+{% block content %}
+<section class="seat-selection">
+    <h2>Select Seats</h2>
+    <div class="movie-info-compact">
+        <h3>{{ showtime.movie.title }} ({{ showtime.movie.format }})</h3>
+        <p>{{ showtime.theatre.name }} | {{ showtime.date.strftime('%d %b, %Y') }} | {{ showtime.time.strftime('%I:%M %p') }}</p>
+    </div>
+    
+    <div class="seat-map-container">
+        <!-- Note: The order is different now - economy is closest to screen -->
+        <div class="screen">Screen</div>
+        
+        <form id="booking-form" action="{{ url_for('main.book_seats') }}" method="post">
+            <input type="hidden" name="showtime_id" value="{{ showtime.id }}">
+            
+            <div class="seat-legend">
+                <div class="legend-item">
+                    <div class="seat-example available"></div>
+                    <span>Available</span>
+                </div>
+                <div class="legend-item">
+                    <div class="seat-example selected"></div>
+                    <span>Selected</span>
+                </div>
+                <div class="legend-item">
+                    <div class="seat-example occupied"></div>
+                    <span>Occupied</span>
+                </div>
+            </div>
+            
+            <!-- Display classes in order: economy (closest to screen), standard, then premium -->
+            {% for seat_class in ['economy', 'standard', 'premium'] %}
+                {% if seat_classes.get(seat_class) %}
+                <div class="seat-section {{ seat_class }}-section">
+                    <h4>{{ seat_class|capitalize }} Class - ₹{{ seat_classes[seat_class][0].price }}</h4>
+                    <div class="seat-grid">
+                        {% set seats = seat_classes[seat_class] %}
+                        {% set seats_per_row = 11 %}  <!-- Fixed at 11 seats per row -->
+                        
+                        <!-- Group seats by row -->
+                        {% set rows = {} %}
+                        {% for seat in seats %}
+                            {% set row_letter = seat.seat_number[0] %}
+                            {% if row_letter not in rows %}
+                                {% if rows.update({row_letter: []}) %}{% endif %}
+                            {% endif %}
+                            {% if rows[row_letter].append(seat) %}{% endif %}
+                        {% endfor %}
+                        
+                        <!-- Display seats row by row -->
+                        {% for row_letter, row_seats in rows.items() %}
+                            <div class="seat-row">
+                                <div class="row-label">{{ row_letter }}</div>
+                                <div class="row-seats">
+                                    {% for seat in row_seats|sort(attribute='seat_number') %}
+                                        <div class="seat-wrapper {% if loop.index == 4 or loop.index == 8 %}gap-right{% endif %}">
+                                            <label class="seat {% if seat.occupied %}occupied{% endif %}" for="seat-{{ seat.id }}" data-seat-id="{{ seat.id }}" data-seat-price="{{ seat.price }}">
+                                                <input type="checkbox" name="seat_ids" value="{{ seat.id }}" id="seat-{{ seat.id }}" {% if seat.occupied %}disabled{% endif %}>
+                                                <span class="seat-label">{{ seat.seat_number }}</span>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+            
+            <div class="booking-summary">
+                <h4>Booking Summary</h4>
+                <p>Selected Seats: <span id="selected-seats-text">None</span></p>
+                <p>Total Amount: ₹<span id="total-amount">0.00</span></p>
+                <button type="button" id="razorpay-button" class="btn btn-primary" disabled>Proceed to Payment</button>
+                <button type="submit" id="book-button" class="btn btn-primary" style="display: none;">Book Tickets</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<style>
+.seat-selection {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.movie-info-compact {
+    background-color: #f5f5f5;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.seat-map-container {
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Styling for proper row-based layout */
+.seat-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.row-label {
+    width: 30px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.row-seats {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+}
+
+.seat-wrapper {
+    margin: 0 2px;
+}
+
+.seat-wrapper.gap-right {
+    margin-right: 20px;
+}
+
+.seat {
+    width: 30px;
+    height: 30px;
+    background-color: #4a80f5;
+    border-radius: 4px;
+    margin: 3px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.seat.occupied {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.seat.selected {
+    background-color: #2ecc71;
+}
+
+.seat-label {
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.seat input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.seat-legend {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0 15px;
+}
+
+.seat-example {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 5px;
+}
+
+.seat-example.available {
+    background-color: #4a80f5;
+}
+
+.seat-example.selected {
+    background-color: #2ecc71;
+}
+
+.seat-example.occupied {
+    background-color: #ccc;
+}
+
+.screen {
+    text-align: center;
+    background: #333;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    transform: perspective(300px) rotateX(-10deg);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+
+/* Visual distinction between sections */
+.economy-section {
+    margin-bottom: 20px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.standard-section {
+    margin-bottom: 20px;
+    background-color: #e9ecef;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.premium-section {
+    margin-bottom: 20px;
+    background-color: #dee2e6;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.booking-summary {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.booking-summary h4 {
+    margin-bottom: 10px;
+}
+
+.booking-summary button {
+    margin-top: 10px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const seatElements = document.querySelectorAll('.seat:not(.occupied)');
+    const selectedSeatsText = document.getElementById('selected-seats-text');
+    const totalAmount = document.getElementById('total-amount');
+    const razorpayButton = document.getElementById('razorpay-button');
+    const bookButton = document.getElementById('book-button');
+    const bookingForm = document.getElementById('booking-form');
+    
+    let selectedSeats = [];
+    
+    seatElements.forEach(seat => {
+        const checkbox = seat.querySelector('input[type="checkbox"]');
+        seat.addEventListener('click', function(e) {
+            const seatId = this.dataset.seatId;
+            const seatPrice = parseFloat(this.dataset.seatPrice);
+            const seatNumber = this.querySelector('.seat-label').textContent.trim();
+            
+            // Toggle selection
+            if (this.classList.contains('selected')) {
+                this.classList.remove('selected');
+                checkbox.checked = false;
+                selectedSeats = selectedSeats.filter(s => s.id !== seatId);
+            } else {
+                this.classList.add('selected');
+                checkbox.checked = true;
+                selectedSeats.push({
+                    id: seatId,
+                    number: seatNumber,
+                    price: seatPrice
+                });
+            }
+            
+            // Update booking summary
+            if (selectedSeats.length > 0) {
+                selectedSeatsText.textContent = selectedSeats.map(s => s.number).join(', ');
+                const total = selectedSeats.reduce((sum, seat) => sum + seat.price, 0).toFixed(2);
+                totalAmount.textContent = total;
+                razorpayButton.disabled = false;
+            } else {
+                selectedSeatsText.textContent = 'None';
+                totalAmount.textContent = '0.00';
+                razorpayButton.disabled = true;
+            }
+        });
+    });
+    
+    // Real-time seat availability check
+    function checkSeatAvailability() {
+        if (selectedSeats.length > 0) {
+            const seatIds = selectedSeats.map(seat => seat.id);
+            
+            fetch('/api/check_seats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ seat_ids: seatIds }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.occupied_seats && data.occupied_seats.length > 0) {
+                    // Some seats became occupied
+                    data.occupied_seats.forEach(id => {
+                        const seat = document.querySelector(`.seat[data-seat-id="${id}"]`);
+                        if (seat) {
+                            seat.classList.remove('selected');
+                            seat.classList.add('occupied');
+                            const checkbox = document.getElementById(`seat-${id}`);
+                            checkbox.checked = false;
+                            checkbox.disabled = true;
+                            selectedSeats = selectedSeats.filter(s => s.id !== id);
+                        }
+                    });
+                    
+                    // Update booking summary
+                    if (selectedSeats.length > 0) {
+                        selectedSeatsText.textContent = selectedSeats.map(s => s.number).join(', ');
+                        const total = selectedSeats.reduce((sum, seat) => sum + seat.price, 0).toFixed(2);
+                        totalAmount.textContent = total;
+                    } else {
+                        selectedSeatsText.textContent = 'None';
+                        totalAmount.textContent = '0.00';
+                        razorpayButton.disabled = true;
+                    }
+                    
+                    alert('Some of your selected seats are no longer available and have been deselected.');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking seat availability:', error);
+            });
+        }
+    }
+    
+    // Set up Razorpay payment
+    razorpayButton.addEventListener('click', function() {
+        // Check seat availability before payment
+        checkSeatAvailability();
+        
+        if (selectedSeats.length > 0) {
+            const amount = selectedSeats.reduce((sum, seat) => sum + seat.price, 0).toFixed(2) * 100; // Convert to paise
+            const seatIds = selectedSeats.map(seat => seat.id);
+            
+            // Create Razorpay order
+            fetch('/api/create_order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    showtime_id: document.querySelector('input[name="showtime_id"]').value,
+                    seat_ids: seatIds
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                var options = {
+                    key: "rzp_test_0CoFmwwua3jG0b",
+                    amount: amount,
+                    currency: "INR",
+                    name: "ALSBookings.com",
+                    description: "Movie Ticket Booking",
+                    order_id: data.order_id,
+                    handler: function (response) {
+                        // On payment success
+                        document.querySelector('input[name="razorpay_payment_id"]').value = response.razorpay_payment_id;
+                        document.querySelector('input[name="razorpay_order_id"]').value = response.razorpay_order_id;
+                        document.querySelector('input[name="razorpay_signature"]').value = response.razorpay_signature;
+                        bookButton.click(); // Submit the form
+                    },
+                    prefill: {
+                        name: "",
+                        email: "",
+                        contact: ""
+                    },
+                    theme: {
+                        color: "#3399cc"
+                    }
+                };
+                var rzp = new Razorpay(options);
+                rzp.open();
+            })
+            .catch(error => {
+                console.error('Error creating Razorpay order:', error);
+                alert('Error processing payment. Please try again.');
+            });
+        }
+    });
+    
+    // Check seat availability every 15 seconds
+    setInterval(checkSeatAvailability, 15000);
+    
+    // Append hidden fields for Razorpay response
+    const razorpayPaymentId = document.createElement('input');
+    razorpayPaymentId.type = 'hidden';
+    razorpayPaymentId.name = 'razorpay_payment_id';
+    bookingForm.appendChild(razorpayPaymentId);
+    
+    const razorpayOrderId = document.createElement('input');
+    razorpayOrderId.type = 'hidden';
+    razorpayOrderId.name = 'razorpay_order_id';
+    bookingForm.appendChild(razorpayOrderId);
+    
+    const razorpaySignature = document.createElement('input');
+    razorpaySignature.type = 'hidden';
+    razorpaySignature.name = 'razorpay_signature';
+    bookingForm.appendChild(razorpaySignature);
+    
+    // Check before form submission
+    bookingForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        checkSeatAvailability();
+        
+        // If we still have selected seats, submit the form
+        if (selectedSeats.length > 0) {
+            this.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+
+{% extends 'base.html' %}
+
+{% block title %}My Bookings - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="my-bookings">
+    <h2>My Bookings</h2>
+    
+    {% if bookings %}
+    <div class="booking-list">
+        {% for booking in bookings %}
+        <div class="booking-card">
+            <div class="booking-header">
+                <h3>{{ booking.showtime.movie.title }}</h3>
+                <span class="booking-date">{{ booking.booking_time.strftime('%d %b, %Y') }}</span>
+            </div>
+            
+            <div class="booking-details">
+                <p><strong>Theatre:</strong> {{ booking.showtime.theatre.name }}</p>
+                <p><strong>Show Date:</strong> {{ booking.showtime.date.strftime('%d %b, %Y') }}</p>
+                <p><strong>Show Time:</strong> {{ booking.showtime.time.strftime('%I:%M %p') }}</p>
+                <p><strong>Seats:</strong> 
+                    {% for booked_seat in booking.seats %}
+                    {{ booked_seat.seat.seat_number }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                <p><strong>Total Amount:</strong> ₹{{ booking.total_amount }}</p>
+            </div>
+            
+            <a href="{{ url_for('main.booking_confirmation', booking_id=booking.id) }}" class="btn btn-secondary">View Details</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-bookings">You have no bookings yet.</p>
+    <a href="{{ url_for('main.movies') }}" class="btn btn-primary">Book Tickets</a>
+    {% endif %}
+</section>
+{% endblock %}

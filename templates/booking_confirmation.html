@@ -1,0 +1,40 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Booking Confirmation - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="booking-confirmation">
+    <div class="confirmation-box">
+        <div class="confirmation-header">
+            <h2>Booking Confirmed!</h2>
+            <p class="booking-id">Booking ID: {{ booking.id }}</p>
+        </div>
+        
+        <div class="movie-details">
+            <h3>{{ booking.showtime.movie.title }}</h3>
+            <p>{{ booking.showtime.theatre.name }}</p>
+            <p>{{ booking.showtime.date.strftime('%d %b, %Y') }} | {{ booking.showtime.time.strftime('%I:%M %p') }}</p>
+        </div>
+        
+        <div class="seat-details">
+            <h4>Seats:</h4>
+            <div class="seat-list">
+                {% for booked_seat in booking.seats %}
+                <span class="seat-tag">{{ booked_seat.seat.seat_number }} ({{ booked_seat.seat.seat_class|capitalize }})</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="amount-details">
+            <h4>Total Amount</h4>
+            <p class="amount">₹{{ booking.total_amount }}</p>
+        </div>
+        
+        <div class="booking-actions">
+            <button class="btn btn-secondary" onclick="window.print()">Print</button>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Home</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

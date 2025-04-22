@@ -1,0 +1,121 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Movies - Flick Ticket Palace{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filters {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 5px;
+    }
+    .filter-group {
+        margin-right: 15px;
+        display: inline-block;
+    }
+    .filter-group label {
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="movies-section">
+    <h2>All Movies</h2>
+    
+    <div class="filters">
+        <div class="filter-group">
+            <label for="genre-filter">Genre:</label>
+            <select id="genre-filter">
+                <option value="">All Genres</option>
+                <option value="Action">Action</option>
+                <option value="Comedy">Comedy</option>
+                <option value="Drama">Drama</option>
+                <option value="Horror">Horror</option>
+                <option value="Thriller">Thriller</option>
+                <option value="Romance">Romance</option>
+                <option value="Sci-Fi">Sci-Fi</option>
+                <option value="Fantasy">Fantasy</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="language-filter">Language:</label>
+            <select id="language-filter">
+                <option value="">All Languages</option>
+                <option value="English">English</option>
+                <option value="Malayalam">Malayalam</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Kannada">Kannada</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="search">Search:</label>
+            <input type="text" id="search" placeholder="Search movies...">
+        </div>
+    </div>
+    
+    <div class="movie-grid" id="movie-grid">
+        {% for movie in movies %}
+        <div class="movie-card" data-genres="{{ movie.genres }}" data-language="{{ movie.language }}" data-title="{{ movie.title }}">
+            <div class="movie-poster">
+                <img src="{{ movie.image_url or url_for('static', filename='img/default-poster.jpg') }}" alt="{{ movie.title }}">
+            </div>
+            <div class="movie-info">
+                <h3>{{ movie.title }}</h3>
+                <p class="movie-meta">{{ movie.language }} | {{ movie.genres }}</p>
+                {% if movie.duration %}
+                <p class="movie-duration">{{ movie.duration }} mins</p>
+                {% endif %}
+                <a href="{{ url_for('main.movie_details', movie_id=movie.id) }}" class="btn btn-secondary">Book Tickets</a>
+            </div>
+        </div>
+        {% else %}
+        <p>No movies available at the moment.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const movieGrid = document.getElementById('movie-grid');
+    const movieCards = movieGrid.querySelectorAll('.movie-card');
+    const genreFilter = document.getElementById('genre-filter');
+    const languageFilter = document.getElementById('language-filter');
+    const searchInput = document.getElementById('search');
+    
+    function filterMovies() {
+        const selectedGenre = genreFilter.value.toLowerCase();
+        const selectedLanguage = languageFilter.value.toLowerCase();
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        movieCards.forEach(card => {
+            const genres = card.dataset.genres.toLowerCase();
+            const language = card.dataset.language.toLowerCase();
+            const title = card.dataset.title.toLowerCase();
+            
+            const genreMatch = !selectedGenre || genres.includes(selectedGenre);
+            const languageMatch = !selectedLanguage || language === selectedLanguage;
+            const searchMatch = !searchTerm || title.includes(searchTerm);
+            
+            if (genreMatch && languageMatch && searchMatch) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    genreFilter.addEventListener('change', filterMovies);
+    languageFilter.addEventListener('change', filterMovies);
+    searchInput.addEventListener('input', filterMovies);
+});
+</script>
+{% endblock %}

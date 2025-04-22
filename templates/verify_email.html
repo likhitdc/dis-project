@@ -1,0 +1,19 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Verify Email - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <h2>Email Verification</h2>
+    <div class="verification-box">
+        {% if success %}
+            <p>Your email has been verified successfully!</p>
+            <p>You can now <a href="{{ url_for('auth.login') }}">login</a> to your account.</p>
+        {% else %}
+            <p>Your verification status is pending.</p>
+            <p>Please check your email for the verification link. If you don't see it, check your spam folder or <a href="{{ url_for('auth.resend_verification') }}">request a new verification email</a>.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

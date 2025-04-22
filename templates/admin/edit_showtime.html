@@ -1,0 +1,48 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Edit Showtime - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="admin-form-section">
+    <h2>Edit Showtime Prices</h2>
+    
+    <div class="showtime-info">
+        <p><strong>Movie:</strong> {{ showtime.movie.title }}</p>
+        <p><strong>Theatre:</strong> {{ showtime.theatre.name }}</p>
+        <p><strong>Date:</strong> {{ showtime.date.strftime('%d %b, %Y') }}</p>
+        <p><strong>Time:</strong> {{ showtime.time.strftime('%I:%M %p') }}</p>
+    </div>
+    
+    <form action="{{ url_for('admin.edit_showtime', showtime_id=showtime.id) }}" method="post" class="admin-form">
+        <div class="form-group">
+            <label for="economy_price">Economy Price (₹)</label>
+            <input type="number" id="economy_price" name="economy_price" value="{{ showtime.economy_price }}" step="0.01" min="0" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="standard_price">Standard Price (₹)</label>
+            <input type="number" id="standard_price" name="standard_price" value="{{ showtime.standard_price }}" step="0.01" min="0" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="premium_price">Premium Price (₹)</label>
+            <input type="number" id="premium_price" name="premium_price" value="{{ showtime.premium_price }}" step="0.01" min="0" required>
+        </div>
+        
+        <div class="form-actions">
+            <a href="{{ url_for('admin.showtimes') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Update Prices</button>
+        </div>
+    </form>
+</section>
+
+<style>
+.showtime-info {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,29 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Showtimes for {{ movie.title }} - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="showtimes-section">
+    <h2>{{ movie.title }} - {{ date }}</h2>
+    
+    <div class="theatres-list">
+        {% for theatre_id, data in theatres_with_showtimes.items() %}
+        <div class="theatre-card">
+            <h3>{{ data.theatre.name }}</h3>
+            <p class="theatre-location">{{ data.theatre.location }}</p>
+            
+            <div class="showtime-options">
+                {% for showtime in data.showtimes %}
+                <a href="{{ url_for('main.seat_selection', showtime_id=showtime.id) }}" class="showtime-option">
+                    {{ showtime.time.strftime('%I:%M %p') }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <p>No showtimes available for this date.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

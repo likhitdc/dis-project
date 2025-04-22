@@ -1,0 +1,47 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Add Movie - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="admin-form-section">
+    <h2>Add New Movie</h2>
+    
+    <form action="{{ url_for('admin.add_movie') }}" method="post" class="admin-form">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="genres">Genres</label>
+            <input type="text" id="genres" name="genres" placeholder="Action, Comedy, Drama, etc." required>
+        </div>
+        
+        <div class="form-group">
+            <label for="language">Language</label>
+            <input type="text" id="language" name="language" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="duration">Duration (minutes)</label>
+            <input type="number" id="duration" name="duration">
+        </div>
+        
+        <div class="form-group">
+            <label for="image_url">Poster Image URL</label>
+            <input type="text" id="image_url" name="image_url">
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="5"></textarea>
+        </div>
+        
+        <div class="form-actions">
+            <a href="{{ url_for('admin.movies') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Add Movie</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

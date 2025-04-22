@@ -1,0 +1,55 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Manage Showtimes - ALSBookings.com{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="admin-header">
+        <h2>Manage Showtimes</h2>
+        <a href="{{ url_for('admin.add_showtime') }}" class="btn btn-primary">Add Showtime</a>
+    </div>
+    
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Movie</th>
+                    <th>Theatre</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Economy Price</th>
+                    <th>Standard Price</th>
+                    <th>Premium Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for showtime in showtimes %}
+                <tr>
+                    <td>{{ showtime.id }}</td>
+                    <td>{{ showtime.movie.title }}</td>
+                    <td>{{ showtime.theatre.name }}</td>
+                    <td>{{ showtime.date.strftime('%d %b, %Y') }}</td>
+                    <td>{{ showtime.time.strftime('%I:%M %p') }}</td>
+                    <td>₹{{ showtime.economy_price }}</td>
+                    <td>₹{{ showtime.standard_price }}</td>
+                    <td>₹{{ showtime.premium_price }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('admin.edit_showtime', showtime_id=showtime.id) }}" class="btn-action">Edit Prices</a>
+                        <form action="{{ url_for('admin.delete_showtime', showtime_id=showtime.id) }}" method="post" style="display: inline;">
+                            <button type="submit" class="btn-action btn-delete" onclick="return confirm('Are you sure you want to delete this showtime? This cannot be undone.')">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9">No showtimes available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

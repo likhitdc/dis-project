@@ -1,0 +1,55 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Manage Bookings - Flick Ticket Palace{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="admin-header">
+        <h2>Manage Bookings</h2>
+    </div>
+    
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Movie</th>
+                    <th>Theatre</th>
+                    <th>Date & Time</th>
+                    <th>Seats</th>
+                    <th>Amount</th>
+                    <th>Booking Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>{{ booking.id }}</td>
+                    <td>{{ booking.user.name }}</td>
+                    <td>{{ booking.showtime.movie.title }}</td>
+                    <td>{{ booking.showtime.theatre.name }}</td>
+                    <td>{{ booking.showtime.date.strftime('%d %b, %Y') }} {{ booking.showtime.time.strftime('%I:%M %p') }}</td>
+                    <td>
+                        {% for booked_seat in booking.seats %}
+                            {{ booked_seat.seat.seat_number }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>₹{{ booking.total_amount }}</td>
+                    <td>{{ booking.booking_time.strftime('%d %b, %Y %I:%M %p') }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('main.booking_confirmation', booking_id=booking.id) }}" class="btn-action">View Details</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9">No bookings available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
